@@ -83,6 +83,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project_teammates.wsgi.application'
 
+AUTH_USER_MODEL = 'teammates.Student'
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -106,7 +107,7 @@ if os.getenv('GAE_APPLICATION', None):
             'HOST': '/cloudsql/project-teammates-236620:us-central1:project-teammates',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
-            'NAME': 'teammates',
+            'NAME': 'teammates_db',
         }
     }
 else:
@@ -121,7 +122,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'HOST': '127.0.0.1',
             'PORT': '3306',
-            'NAME': 'teammates',
+            'NAME': 'teammates_db',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
         }
