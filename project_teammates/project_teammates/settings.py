@@ -25,7 +25,7 @@ SECRET_KEY = '&6r8i_e#)^9q2+7bkfutvs$dbs$k8-kk8ln!vzc%+d$q&a^qpe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
@@ -40,8 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    # 'project_teammates.apps.TeammatesConfig',
     'teammates',
-
     'rest_framework',
     'rest_framework.authtoken',
     'rest_auth',
@@ -180,13 +180,17 @@ REST_FRAMEWORK = {
 AUTHENTICATION_BACKENDS = (
 
     # Needed to login by username in Django admin, regardless of `allauth`
+
     'django.contrib.auth.backends.ModelBackend',
 
+    
     # `allauth` specific authentication methods, such as login by e-mail
+
     'allauth.account.auth_backends.AuthenticationBackend',
 
 )
 
+ACCOUNT_ADAPTER ="teammates.EmailValidationAccountAdapter.MyCoolAdapter"
 
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_EMAIL_REQUIRED = True
