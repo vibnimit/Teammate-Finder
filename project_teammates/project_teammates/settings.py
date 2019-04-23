@@ -107,7 +107,7 @@ if os.getenv('GAE_APPLICATION', None):
             'HOST': '/cloudsql/project-teammates-236620:us-central1:project-teammates',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
-            'NAME': 'teammates_db',
+            'NAME': 'teammates',
         }
     }
 else:
@@ -122,7 +122,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'HOST': '127.0.0.1',
             'PORT': '3306',
-            'NAME': 'teammates_db',
+            'NAME': 'teammates',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
         }
@@ -191,7 +191,12 @@ AUTHENTICATION_BACKENDS = (
 
 )
 
-ACCOUNT_ADAPTER ="teammates.EmailValidationAccountAdapter.MyCoolAdapter"
+ACCOUNT_ADAPTER = "teammates.EmailValidationAccountAdapter.MyCoolAdapter"
+REST_AUTH_REGISTER_SERIALIZERS = {
+        'REGISTER_SERIALIZER': "teammates.StudentRegistrationSerializer.StudentSerializerOveride"
+
+    }
+
 
 ACCOUNT_EMAIL_VERIFICATION = "optional"
 ACCOUNT_EMAIL_REQUIRED = True
