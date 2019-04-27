@@ -1,0 +1,4 @@
+cron:
+- description: "Calculate Rating job"
+  url: /cron/calculateScore
+  schedule: every 24 hours

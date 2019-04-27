@@ -18,6 +18,7 @@ class StudentSerializerOveride(RegisterSerializer):
     first_name = serializers.CharField(write_only=True)
     last_name = serializers.CharField(write_only=True)
     skills = serializers.ListField( child = serializers.CharField())
+    university = serializers.PrimaryKeyRelatedField(read_only=True)
 
     def save(self, request):
         adapter = get_adapter()
@@ -38,5 +39,6 @@ class StudentSerializerOveride(RegisterSerializer):
             'first_name': self.validated_data.get('first_name', ''),
             'last_name': self.validated_data.get('last_name', ''),
             'skills': self.validated_data.get('skills', ''),
+            'university': self.validated_data.get('university', ''),
 
         }

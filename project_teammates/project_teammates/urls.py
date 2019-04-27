@@ -16,6 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from allauth.account.views import confirm_email
+# from scripts.calc_rating import
+from teammates.api.views import updateStudentRank
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -23,6 +26,7 @@ urlpatterns = [
     path('rest-auth/', include('rest_auth.urls')),
     # path('rest-auth/registration/account-confirm-email/(?P<key>.+)/', confirm_email, name='account_confirm_email'),
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
-    path('api/',include('teammates.api.urls'))
+    path('api/',include('teammates.api.urls')),
+    path('cron/calculateScore', updateStudentRank)
 
 ]
