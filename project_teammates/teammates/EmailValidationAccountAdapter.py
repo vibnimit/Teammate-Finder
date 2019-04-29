@@ -1,6 +1,9 @@
 from allauth.account.adapter import DefaultAccountAdapter
 from django.forms import ValidationError
 from django.utils.translation import ugettext as _
+import json
+from django.http import HttpResponse
+
 
 class MyCoolAdapter(DefaultAccountAdapter):
 
@@ -47,3 +50,30 @@ class MyCoolAdapter(DefaultAccountAdapter):
             user.save()
 
         return user
+
+    def ajax_response(self, request, response, redirect_to=None, form=None,
+                      data=None):
+        resp = {}
+        status = response.status_code
+
+        if redirect_to:
+            status = 200
+            resp['location'] = redirect_to
+        if form:
+            if request.method == 'POST':
+                if form.is_valid():
+                    status = 200
+                else:
+                    status = 400
+            else:
+                status = 200
+            resp['form'] = self.ajax_response_form(form)
+            if hasattr(response, 'render'):
+                response.render()
+            resp['html'] = response.content.decode('utf8')
+        if data is not None:
+            resp['data'] = data
+        print('some', data)
+        return HttpResponse(json.dumps(resp),
+                            status=status,
+                            content_type='application/json')

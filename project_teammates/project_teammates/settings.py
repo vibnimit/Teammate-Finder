@@ -218,7 +218,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
 SESSION_COOKIE_DOMAIN = '.appspot.com'
 CSRF_COOKIE_DOMAIN = '.appspot.com'
-ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com"]
+ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
 
 
 CORS_ALLOW_HEADERS = (

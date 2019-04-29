@@ -18,11 +18,15 @@ from django.urls import path, include
 from allauth.account.views import confirm_email
 # from scripts.calc_rating import
 from teammates.api.views import updateStudentRank
+from teammates.api.views import CustomLogin, CustomRegisterView
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api-auth/', include('rest_framework.urls')),
+    path('rest-auth/login/', CustomLogin.as_view()),
+    path('rest-auth/registration/', CustomRegisterView.as_view()),
+
     path('rest-auth/', include('rest_auth.urls')),
     # path('rest-auth/registration/account-confirm-email/(?P<key>.+)/', confirm_email, name='account_confirm_email'),
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
