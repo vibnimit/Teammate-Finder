@@ -24,10 +24,21 @@ from rest_auth.app_settings import (TokenSerializer,
                                     JWTSerializer)
 from project_teammates.settings import REST_AUTH_SERIALIZERS
 from django.utils.translation import ugettext_lazy as _
+#============================================================================
+import argparse
+import sys
+import six
+from google.cloud import language
+from google.cloud.language import enums
+from google.cloud.language import types
+import os
+import statistics 
+#=============================================================================
 # from teammates.CustomTokenSerializer import MyTokenSerializer
 
 
-
+path = "CSE578-43fcff5cabbc.json"
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
 
 class StudentListAPIView(ListAPIView):
     authentication_classes = (SessionAuthentication, BasicAuthentication)
@@ -88,17 +99,80 @@ def updateStudentRank(request):
         student.score=score_dict.get(student.id)
         student.save()
     return HttpResponse("<h1>Success</h1>")
+#-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------Modified by Jagriti---------------------------------------------------------------
+
+
+def entity_sentiment_text(annotations,text):
+    client = language.LanguageServiceClient()
+    if isinstance(text, six.binary_type):
+        text = text.decode('utf-8')
+    document = types.Document(content=text,type=enums.Document.Type.PLAIN_TEXT)
+    encoding = enums.EncodingType.UTF32
+    if sys.maxunicode == 65535:
+        encoding = enums.EncodingType.UTF16
+    result = client.analyze_entity_sentiment(document)
+    for entity in result.entities:
+        print(u'Name: "{}"'.format(entity.name))
+        for mention in entity.mentions:
+            print(u'Magnitude : {}'.format(mention.sentiment.magnitude))
+        if entity.sentiment.score>0:
+            print('Positive\n')
+        elif entity.sentiment.score<0:
+            print('Negative\n')
+        else:
+            print("Neutral\n")
+
+
+def print_result(annotations,content):
+    score = annotations.document_sentiment.score
+    magnitude = annotations.document_sentiment.magnitude
+    if score>0:
+        sent = 'Positive'
+    elif score<0:
+        sent = 'Negative'
+    else:
+        sent = "Neutral"
+    print("Overall Sentiment: {}, Magnitude {}, Score {}\n".format(sent, magnitude, score))
+    #entity_sentiment_text(annotations,content)
+    return score
+
+
+
+def analyze(content):
+    client = language.LanguageServiceClient()
+    document = types.Document(
+        content=content,
+        type=enums.Document.Type.PLAIN_TEXT)
+    annotations = client.analyze_sentiment(document=document)
+    sent_score = print_result(annotations,content)
+	return sent_score
 
 
 def function_by_Jagriti(dic):
     scores = {}
+	avg_review_score = []
+	path = "CSE578-43fcff5cabbc.json"
+	os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path     #####Check this before running the code
     for student in dic.keys():
-        scores[student] = 4.0
-
-    return scores
-
-
-
+		temp = []
+        #scores[student] = 4.0
+		each_stud = dic[student]
+		list_comment = each_stud['comments']
+		for comment in list_comment:
+			overall_sent_score = analyze(comment)
+			avg_review_score.append(overall_sent_score)
+		review_score = statistics.mean(avg_review_score)    ####Final review score
+		normalized_rating_score = [x / 5 for x in each_stud['rating']]
+		rating_score = statistics.mean(normalized_rating_score)  ####Final rating score
+		scor = review_score + rating_score
+		temp.append(scor)
+		temp.append(len(each_stud['comments']))
+		temp.append(len(each_stud['ratings']))
+		scores[student] = temp
+    return scores                                                   ### scores = {stud_id: [overall_rating, no of people commented, no of people rated],stud_id:[overall_rating, no of people commented, no of people rated]}
+	
+#----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class CustomLogin(LoginView):
     permission_classes = (AllowAny,)
     serializer_class = LoginSerializer
