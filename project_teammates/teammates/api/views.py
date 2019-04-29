@@ -24,8 +24,6 @@ class CoursesListAPIView(ListAPIView):
     serializer_class = CourseSerializer
 
 class UniversityListAPIView(ListAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
-    permission_classes = (IsAuthenticated,)
     queryset = University.objects.all()
     serializer_class = UniversitySerializer
 
