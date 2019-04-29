@@ -56,7 +56,7 @@ class Rating(RecordTimeStamp):
     rating = models.FloatField(default=0)
 
     def __str__(self):
-        return "giver = %s & receiver = %s & rating = %s" %(self.rating_giver.name, self.rating_receiver.name, self.rating)
+        return "giver = %s & receiver = %s & rating = %s" %(self.rating_giver.email, self.rating_receiver.email, self.rating)
 
 class Comment(RecordTimeStamp):
     comment_giver = models.ForeignKey(Student, null=False, blank=False, on_delete = models.CASCADE, related_name="comment_given")
@@ -64,7 +64,7 @@ class Comment(RecordTimeStamp):
     comment = models.CharField(max_length=500)
 
     def __str__(self):
-        return "giver = %s & receiver = %s & comment = %s" %(self.comment_giver.name, self.comment_receiver.name,
+        return "giver = %s & receiver = %s & comment = %s" %(self.comment_giver.email, self.comment_receiver.email,
                                                           self.comment)
 
 class LookingForTeammates(RecordTimeStamp):

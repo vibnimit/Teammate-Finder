@@ -1,5 +1,5 @@
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
-from teammates.models import Student, Course, University, StudentCourse
+from teammates.models import Student, Course, University, StudentCourse, Rating, Comment
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -56,5 +56,25 @@ def getStudents(request, *args ,**kwargs):
 def updateStudentRank(request):
     students = Student.objects.all()
     # calculateScore(students)
-    students.update(score=10.0)
+    stud_data = {}
+    for student in students:
+        ratings = Rating.objects.filter(rating_receiver=student.id).values_list("rating", flat=True)
+        comments = Comment.objects.filter(rating_receiver=student.id).values_list("comment", flat=True)
+        stud_data[student.id] = {
+            "comments": comments,
+            "ratings": ratings
+        }
+
+    score_dict = function_by_Jagriti(stud_data)
+    for student in students:
+        student.score=score_dict.get(student.id)
+        student.save()
     return HttpResponse("<h1>Success</h1>")
+
+
+def function_by_Jagriti(dic):
+    scores = {}
+    for student in dic.keys():
+        scores[student] = 4.0
+
+    return scores

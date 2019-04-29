@@ -201,16 +201,25 @@ AUTHENTICATION_BACKENDS = (
 )
 
 ACCOUNT_ADAPTER = "teammates.EmailValidationAccountAdapter.MyCoolAdapter"
+
 REST_AUTH_REGISTER_SERIALIZERS = {
         'REGISTER_SERIALIZER': "teammates.StudentRegistrationSerializer.StudentSerializerOveride"
 
-    }
+}
+
+REST_AUTH_SERIALIZERS = {
+    'TOKEN_SERIALIZER': 'teammates.CustomTokenSerializer.MyTokenSerializer',
+}
 
 CORS_ORIGIN_ALLOW_ALL = False
-# SESSION_COOKIE_SAMESITE = None
+SESSION_COOKIE_SAMESITE = None
 # SESSION_COOKIE_HTTPONLY = False
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
+SESSION_COOKIE_DOMAIN = '.appspot.com'
+CSRF_COOKIE_DOMAIN = '.appspot.com'
+ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com"]
+
 
 CORS_ALLOW_HEADERS = (
     'accept',
@@ -223,6 +232,7 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
     'access-control-allow-credentials',
+    'Access-Control-Allow-Origin',
 )
 
 
