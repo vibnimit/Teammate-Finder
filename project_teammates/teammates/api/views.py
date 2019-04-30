@@ -5,6 +5,7 @@ from rest_framework.authentication import SessionAuthentication, BasicAuthentica
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
 
 from .serializers import StudentSerializer, CourseSerializer, UniversitySerializer, StudentSearchSerializer
 from django.core import serializers
@@ -79,8 +80,42 @@ def getStudents(request, *args ,**kwargs):
     if request.method == "GET":
         students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id=kwargs.get('course_id')).values('student_id')).order_by('-score')
         result = serializers.serialize("json", students)
-
+        print('result============> ', result)
         return HttpResponse(json.dumps(result), content_type='application/json')
+
+# @api_view()
+# # @authentication_classes((SessionAuthentication, BasicAuthentication))
+# # @permission_classes((IsAuthenticated,))
+@csrf_exempt
+def submitFeedback(request):
+    if request.method == 'POST':
+        # print('came======================%')
+
+        giver = request.POST.get('student_from')
+        receiver = request.POST.get('student_to')
+        comment = request.POST.get('comment')
+        rating = request.POST.get('rating', None)
+        #
+        # decoded = request.body.decode('utf-8')
+        # print(json.loads(decoded))
+        # # request.body = request.body.decode('utf-8')
+        # json_obj = json.loads(decoded)
+        # giver = json_obj.get('student_from')
+        # print(giver)
+        # receiver = json_obj['student_to']
+        # comment = json_obj['comment']
+        # rating = json_obj.get('rating', None)
+
+        if not rating:
+            print('not rating')
+            return HttpResponse("Rating is Mandatory", status=400, content_type="application/text")
+        if rating:
+            Rating.objects.create(rating_giver_id = giver, rating_receiver_id = receiver, rating = rating)
+
+        if comment:
+            Comment.objects.create(comment_giver_id=giver, comment_receiver_id=receiver, comment=comment)
+        return HttpResponse("Success", status=200, content_type="application/text")
+
 
 
 def updateStudentRank(request):
@@ -94,7 +129,7 @@ def updateStudentRank(request):
             "comments": list(comments),
             "ratings": list(ratings)
         }
-    print("===========>> ",stud_data)
+    # print("===========>> ",stud_data)
     score_dict = function_by_Jagriti(stud_data)
     for student in students:
         student.score = score_dict.get(student.id).get(0,0.0)
