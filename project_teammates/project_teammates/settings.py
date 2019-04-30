@@ -25,7 +25,7 @@ SECRET_KEY = '&6r8i_e#)^9q2+7bkfutvs$dbs$k8-kk8ln!vzc%+d$q&a^qpe'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
@@ -181,8 +181,8 @@ REST_FRAMEWORK = {
     ],
 
     'DEFAULT_PERMISSION_CLASSES': [
-        # 'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-        'rest_framework.permissions.IsAuthenticated',
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly',#Allow this to allow custom authentication permission for some APIs
+        # 'rest_framework.permissions.IsAuthenticated',
     ]
 
 }
@@ -193,7 +193,7 @@ AUTHENTICATION_BACKENDS = (
 
     'django.contrib.auth.backends.ModelBackend',
 
-    
+
     # `allauth` specific authentication methods, such as login by e-mail
 
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -211,14 +211,20 @@ REST_AUTH_SERIALIZERS = {
     'TOKEN_SERIALIZER': 'teammates.CustomTokenSerializer.MyTokenSerializer',
 }
 
-CORS_ORIGIN_ALLOW_ALL = False
-SESSION_COOKIE_SAMESITE = None
-# SESSION_COOKIE_HTTPONLY = False
-CORS_ALLOW_CREDENTIALS = True
-CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
-SESSION_COOKIE_DOMAIN = '.appspot.com'
-CSRF_COOKIE_DOMAIN = '.appspot.com'
-ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
+#----------------Settings for running on localhost------------#
+CORS_ORIGIN_ALLOW_ALL = True
+ALLOWED_HOSTS = ['*']
+
+#----------------Settings for running on Production Google Cloud------------#
+# CORS_ORIGIN_ALLOW_ALL = False
+# SESSION_COOKIE_SAMESITE = None
+# # SESSION_COOKIE_HTTPONLY = False
+# CORS_ALLOW_CREDENTIALS = True
+# CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
+# SESSION_COOKIE_DOMAIN = '.appspot.com'
+# CSRF_COOKIE_DOMAIN = '.appspot.com'
+# ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
+
 
 
 CORS_ALLOW_HEADERS = (
