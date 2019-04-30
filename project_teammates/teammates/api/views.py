@@ -32,7 +32,8 @@ from google.cloud import language
 from google.cloud.language import enums
 from google.cloud.language import types
 import os
-import statistics 
+import statistics
+
 #=============================================================================
 # from teammates.CustomTokenSerializer import MyTokenSerializer
 
@@ -88,20 +89,19 @@ def updateStudentRank(request):
     stud_data = {}
     for student in students:
         ratings = Rating.objects.filter(rating_receiver=student.id).values_list("rating", flat=True)
-        comments = Comment.objects.filter(rating_receiver=student.id).values_list("comment", flat=True)
+        comments = Comment.objects.filter(comment_receiver=student.id).values_list("comment", flat=True)
         stud_data[student.id] = {
-            "comments": comments,
-            "ratings": ratings
+            "comments": list(comments),
+            "ratings": list(ratings)
         }
-
+    print("===========>> ",stud_data)
     score_dict = function_by_Jagriti(stud_data)
     for student in students:
-        student.score=score_dict.get(student.id)
+        student.score = score_dict.get(student.id).get(0,0.0)
         student.save()
     return HttpResponse("<h1>Success</h1>")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------Modified by Jagriti---------------------------------------------------------------
-
 
 def entity_sentiment_text(annotations,text):
     client = language.LanguageServiceClient()
@@ -146,30 +146,36 @@ def analyze(content):
         type=enums.Document.Type.PLAIN_TEXT)
     annotations = client.analyze_sentiment(document=document)
     sent_score = print_result(annotations,content)
-	return sent_score
+    return sent_score
 
 
 def function_by_Jagriti(dic):
     scores = {}
-	avg_review_score = []
-	path = "CSE578-43fcff5cabbc.json"
-	os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path     #####Check this before running the code
+    avg_review_score = []
+    review_score = 0.0
+    rating_score = 0.0
+    path = "CSE578-43fcff5cabbc.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path     #####Check this before running the code
     for student in dic.keys():
-		temp = []
+        temp = []
         #scores[student] = 4.0
-		each_stud = dic[student]
-		list_comment = each_stud['comments']
-		for comment in list_comment:
-			overall_sent_score = analyze(comment)
-			avg_review_score.append(overall_sent_score)
-		review_score = statistics.mean(avg_review_score)    ####Final review score
-		normalized_rating_score = [x / 5 for x in each_stud['rating']]
-		rating_score = statistics.mean(normalized_rating_score)  ####Final rating score
-		scor = review_score + rating_score
-		temp.append(scor)
-		temp.append(len(each_stud['comments']))
-		temp.append(len(each_stud['ratings']))
-		scores[student] = temp
+        each_stud = dic[student]
+        list_comment = each_stud['comments']
+        student_rating = each_stud['ratings']
+        if list_comment:
+            for comment in list_comment:
+                overall_sent_score = analyze(comment)
+                avg_review_score.append(overall_sent_score)
+            review_score = statistics.mean(avg_review_score)    ####Final review score
+        if student_rating:
+            normalized_rating_score = [x / 5 for x in student_rating]
+            rating_score = statistics.mean(normalized_rating_score)  ####Final rating score
+        scor = review_score + rating_score
+        temp.append(scor)
+        temp.append(len(each_stud['comments']))
+        temp.append(len(each_stud['ratings']))
+        scores[student] = temp
+    print('scores=  ', scores)
     return scores                                                   ### scores = {stud_id: [overall_rating, no of people commented, no of people rated],stud_id:[overall_rating, no of people commented, no of people rated]}
 	
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
