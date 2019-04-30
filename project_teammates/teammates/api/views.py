@@ -164,11 +164,14 @@ def function_by_Jagriti(dic):
         student_rating = each_stud['ratings']
         if list_comment:
             for comment in list_comment:
+                print("comment",comment)
                 overall_sent_score = analyze(comment)
                 avg_review_score.append(overall_sent_score)
+                print("avg_review_score",avg_review_score)
             review_score = statistics.mean(avg_review_score)    ####Final review score
         if student_rating:
             normalized_rating_score = [x / 5 for x in student_rating]
+            print("normalized rating",normalized_rating_score)
             rating_score = statistics.mean(normalized_rating_score)  ####Final rating score
         scor = review_score + rating_score
         temp.append(scor)
@@ -176,7 +179,7 @@ def function_by_Jagriti(dic):
         temp.append(len(each_stud['ratings']))
         scores[student] = temp
     print('scores=  ', scores)
-    return scores                                                   ### scores = {stud_id: [overall_rating, no of people commented, no of people rated],stud_id:[overall_rating, no of people commented, no of people rated]}
+    return scores                              ### scores = {stud_id: [overall_rating, no of people commented, no of people rated],stud_id:[overall_rating, no of people commented, no of people rated]}
 	
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
 class CustomLogin(LoginView):
