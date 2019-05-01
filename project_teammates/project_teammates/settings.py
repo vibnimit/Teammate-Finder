@@ -59,7 +59,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
 
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -176,8 +176,8 @@ REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        # 'rest_framework.authentication.BasicAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+        # 'rest_framework.authentication.SessionAuthentication',
     ],
 
     'DEFAULT_PERMISSION_CLASSES': [
@@ -211,16 +211,22 @@ REST_AUTH_SERIALIZERS = {
     'TOKEN_SERIALIZER': 'teammates.CustomTokenSerializer.MyTokenSerializer',
 }
 
-#----------------Settings for running on localhost------------#
+#----------------Settings for running on my localhost------------#
 CORS_ORIGIN_ALLOW_ALL = True
 ALLOWED_HOSTS = ['*']
+
+#----------------Settings for running on cross origin localhost------------#
+# CORS_ORIGIN_ALLOW_ALL = False
+# ALLOWED_HOSTS = ['*']
+CORS_ORIGIN_WHITELIST = ('localhost:3000','https://eighth-alchemy-236004.appspot.com/','eighth-alchemy-236004.appspot.com',)
+# CORS_ALLOW_CREDENTIALS = True
 
 #----------------Settings for running on Production Google Cloud------------#
 # CORS_ORIGIN_ALLOW_ALL = False
 # SESSION_COOKIE_SAMESITE = None
 # # SESSION_COOKIE_HTTPONLY = False
 # CORS_ALLOW_CREDENTIALS = True
-# CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
+# # CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
 # SESSION_COOKIE_DOMAIN = '.appspot.com'
 # CSRF_COOKIE_DOMAIN = '.appspot.com'
 # ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
@@ -239,6 +245,7 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
     'access-control-allow-credentials',
     'Access-Control-Allow-Origin',
+    'x-xsrf-token',
 )
 
 

@@ -32,7 +32,7 @@ class MyCoolAdapter(DefaultAccountAdapter):
         if data.get('skills'):
             setattr(user, "skills", data.get('skills'))
         if data.get('university'):
-            setattr(user, "university", data.get('university'))
+            setattr(user, "university_id", data.get('university'))
         user_email(user, email)
         user_username(user, username)
         if first_name:

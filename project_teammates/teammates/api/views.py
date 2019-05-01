@@ -1,7 +1,7 @@
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
 from teammates.models import Student, Course, University, StudentCourse, Rating, Comment
 from rest_framework.response import Response
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import authentication_classes, permission_classes
 from rest_framework.decorators import api_view
@@ -25,6 +25,7 @@ from rest_auth.app_settings import (TokenSerializer,
                                     JWTSerializer)
 from project_teammates.settings import REST_AUTH_SERIALIZERS
 from django.utils.translation import ugettext_lazy as _
+from project_teammates.settings import BASE_DIR
 #============================================================================
 import argparse
 import sys
@@ -34,22 +35,23 @@ from google.cloud.language import enums
 from google.cloud.language import types
 import os
 import statistics
+import uuid
 
 #=============================================================================
 # from teammates.CustomTokenSerializer import MyTokenSerializer
 
 
-path = "CSE578-43fcff5cabbc.json"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
+# path = "CSE578-43fcff5cabbc.json"
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path
 
 class StudentListAPIView(ListAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Student.objects.all()
     serializer_class = StudentSerializer
 
 class CoursesListAPIView(ListAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
@@ -59,7 +61,7 @@ class UniversityListAPIView(ListAPIView):
     serializer_class = UniversitySerializer
 
 class RetrieveStudentsAPIView(RetrieveAPIView):
-    authentication_classes = (SessionAuthentication, BasicAuthentication)
+    authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
     queryset = Student.objects.all()
     serializer_class = StudentSearchSerializer
@@ -73,38 +75,36 @@ class RetrieveStudentsAPIView(RetrieveAPIView):
         return Response(serializer.data)
         # return students
 
-@api_view()
-@authentication_classes((SessionAuthentication, BasicAuthentication))
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication,))
 @permission_classes((IsAuthenticated,))
 def getStudents(request, *args ,**kwargs):
     if request.method == "GET":
+        # session = request.GET.get('session')
+        # print("============  Matched ==============", request.user)
+        # print('key  ',get_token(request))
+        # if session == request.session.session_key:
+        #     print("============  Matched ==============")
         students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id=kwargs.get('course_id')).values('student_id')).order_by('-score')
         result = serializers.serialize("json", students)
         print('result============> ', result)
+
         return HttpResponse(json.dumps(result), content_type='application/json')
 
-# @api_view()
-# # @authentication_classes((SessionAuthentication, BasicAuthentication))
-# # @permission_classes((IsAuthenticated,))
-@csrf_exempt
+@api_view(['POST'])
+@authentication_classes((TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
 def submitFeedback(request):
     if request.method == 'POST':
-        # print('came======================%')
-
-        giver = request.POST.get('student_from')
-        receiver = request.POST.get('student_to')
-        comment = request.POST.get('comment')
-        rating = request.POST.get('rating', None)
-        #
-        # decoded = request.body.decode('utf-8')
-        # print(json.loads(decoded))
-        # # request.body = request.body.decode('utf-8')
-        # json_obj = json.loads(decoded)
-        # giver = json_obj.get('student_from')
-        # print(giver)
-        # receiver = json_obj['student_to']
-        # comment = json_obj['comment']
-        # rating = json_obj.get('rating', None)
+        decoded = request.body.decode('utf-8')
+        print(json.loads(decoded))
+        # request.body = request.body.decode('utf-8')
+        json_obj = json.loads(decoded)
+        giver = json_obj.get('student_from')
+        print(giver)
+        receiver = json_obj['student_to']
+        comment = json_obj['comment']
+        rating = json_obj.get('rating', None)
 
         if not rating:
             print('not rating')
@@ -125,15 +125,19 @@ def updateStudentRank(request):
     for student in students:
         ratings = Rating.objects.filter(rating_receiver=student.id).values_list("rating", flat=True)
         comments = Comment.objects.filter(comment_receiver=student.id).values_list("comment", flat=True)
-        stud_data[student.id] = {
+        stud_data[str(student.id)] = {
             "comments": list(comments),
             "ratings": list(ratings)
         }
     # print("===========>> ",stud_data)
     score_dict = function_by_Jagriti(stud_data)
+    print("==============================&===================  \n", score_dict)
     for student in students:
-        student.score = score_dict.get(student.id).get(0,0.0)
-        student.save()
+        calculated_values = score_dict.get(str(student.id))
+        # print("values = ", calculated_values)
+        if calculated_values:
+            student.score = calculated_values[0]
+            student.save()
     return HttpResponse("<h1>Success</h1>")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------Modified by Jagriti---------------------------------------------------------------
@@ -189,7 +193,7 @@ def function_by_Jagriti(dic):
     avg_review_score = []
     review_score = 0.0
     rating_score = 0.0
-    path = "CSE578-43fcff5cabbc.json"
+    path = BASE_DIR+"/teammates/api/CSE578-43fcff5cabbc.json"
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path     #####Check this before running the code
     for student in dic.keys():
         temp = []
@@ -227,7 +231,6 @@ class CustomLogin(LoginView):
             data = {
                 'user': self.user,
                 'token': self.token,
-                'vibhu':'varshney'
             }
             serializer = serializer_class(instance=data,
                                           context={'request': self.request})
@@ -250,7 +253,7 @@ class CustomLogin(LoginView):
                                     expires=expiration,
                                     httponly=True)
 
-        print("ress",response)
+        # print("ress",response)
         return response
 
 
@@ -278,3 +281,76 @@ class CustomRegisterView(RegisterView):
             register_data['session'] = self.request.session.session_key
             register_data['csrf'] = get_token(self.request)
             return register_data
+
+# @csrf_exempt
+@api_view(['GET','POST'])
+@authentication_classes((TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def get_or_setCourses(request):
+    if request.method == 'POST':
+        print(request.POST.__dict__)
+        print("===========",request.data)
+        if request.POST.get("student_id", None) == None:
+            json_obj = request.data
+            # json_obj = json.loads(decoded)
+            student_id = json_obj.get('student_id')
+
+            student_id = uuid.UUID(str(student_id)).hex
+
+            courses = json_obj.get("courses")
+
+        else:
+            student_id = request.POST.get("student_id")
+            courses = request.POST.get("courses")
+        enrolled = courses.get("current")
+        past = courses.get("past")
+
+        enrolled = courses.get("current")
+        past = courses.get("past")
+        try:
+            for course in enrolled:
+                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course, enrolled = True)
+
+            for course in past:
+                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course,
+                                                                                 enrolled=False)
+        except Exception as e:
+            print("Exception occurred in get_or_setCourses", e)
+            return HttpResponse("Courses Update failed", status = 204, content_type='application/text')
+
+        return HttpResponse("Courses Updated", status = 200, content_type='application/text')
+
+    elif request.method == 'GET':
+        student_id = request.GET.get('student_id', None)
+        if student_id == None:
+            all_courses = Course.objects.all()
+            result = getJSONSerializedData(all_courses) #Note this will data after json.dumps()
+            return HttpResponse(result, content_type='application/json')
+        student = Student.objects.get(id = student_id)
+        courses = student.courses_enrolled.all()
+        result = {
+            "current":[],
+            "past":[]
+        }
+        for course in courses:
+            if course.enrolled:
+                result["current"].append({
+                    "name": course.course_id.name,
+                    "course_id": str(course.course_id_id)
+                })
+            elif course.enrolled == False:
+                result["past"].append({
+                    "name": course.course_id.name,
+                    "course_id": str(course.course_id_id)
+                })
+
+        return HttpResponse(json.dumps(result), content_type='application/json')
+
+
+def getJSONSerializedData(data):
+    result = serializers.serialize("json", data)
+    return json.dumps(result)
+
+# def getStudentsOfACourse(request):
+#
+

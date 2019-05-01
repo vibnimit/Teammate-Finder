@@ -28,6 +28,8 @@ class Student(AbstractUser):
     skills = ArrayField(models.CharField(max_length=200), blank=True, null = True)
     university = models.ForeignKey(University, null=True, blank=True, on_delete = models.CASCADE, related_name="students")
     score = models.FloatField(default=0)
+    # students_rated = models.PositiveIntegerField(default=0)
+    # students_reviewed = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.email
