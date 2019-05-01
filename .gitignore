@@ -4,3 +4,4 @@
 project_teammates/teammates/api/__pycache__/*
 .idea/workspace.xml
 ./project_teammates/teammates/api/__pycache__/*
+*.pyc
