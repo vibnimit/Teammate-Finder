@@ -1,7 +1,5 @@
 ./project_teammates/teammates/__pycache__/*
 .idea/*
-./project_teammates/project_teammates/__pycache__/*
-project_teammates/teammates/api/__pycache__/*
 .idea/workspace.xml
 ./project_teammates/teammates/api/__pycache__/*
 *.pyc

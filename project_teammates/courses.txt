@@ -1,0 +1,59 @@
+CSE509::Digital Video Processing
+CSE510::Database Management System Implementation
+CSE511::Data Processing at Scale
+CSE515::Multimedia and Web Databases
+CSE520::Computer Architecture II
+CSE522::Real-Time Embedded Systems
+CSE530::Embedded Operating Systems Internals
+CSE531::Distributedand Multiprocessor Operating Systems
+CSE534::Advanced Computer Networks
+CSE535::Mobile Computing
+CSE536::Advanced Operating Systems
+CSE539::Applied Cryptography
+CSE543::Information Assurance and Security
+CSE545::Software Security
+CSE548::Advanced Computer Network Security
+CSE550::Combinatorial Algorithms and Intractability
+CSE551::Foundations of Algorithms*
+CSE552::Randomized and Approimation Algorithms
+CSE555::Theory of Computation
+CSE556::Game Theory with Applications to Networks
+CSE561::Modeling and Simulation Theory and Applications
+CSE563::Software Requirements and Specification
+CSE564::Software Design
+CSE565::Software Verification, Validation and Testing
+CSE566::Software Project, Processand Quality Management
+CSE569::Fundamentals of Statistical Learning and Pattern Recognition
+CSE570::Advanced Computer GraphicsI
+CSE571::Artificial Intelligence
+CSE572::Data Mining
+CSE573::Semantic Web Mining
+CSE574::Planning and Learning Methods in AI
+CSE575::Statistical Machine Learning
+CSE576::Topics in Natural Language Processing
+CSE577::Advanced Geometric Modeling I
+CSE578::Data Visualization
+CSE579::Knowledge Representation and Reasoning
+CSE408::Multimedia Information Systems
+CSE412::Database Management
+CSE414::Advanced Database Concepts
+CSE432::Operating System Internals
+CSE434::Computer Networks
+CSE438::Embedded Systems Programming
+CSE440::Compiler Construction I
+CSE445::Distributed Software Development
+CSE446::Software Integration and Engineering
+CSE457::Theory of Formal Languages
+CSE459::Logic for Computing Scientists
+CSE460::Software Analysis and Design
+CSE463::Introduction to Human Computer Interaction
+CSE464::Software Quality Assurance and Testing
+CSE466::Computer Systems Security
+CSE467::Dataand Information Security
+CSE468::Computer Network Security
+CSE469::Computerand Network Forensics
+CSE470::Computer Graphics
+CSE471::Introduction to Artificial Intelligence
+CSE472::Social Media Mining
+CSE476::Introduction to Natural Language Processing
+CSE477::Introduction to Computer-Aided Geometric Design

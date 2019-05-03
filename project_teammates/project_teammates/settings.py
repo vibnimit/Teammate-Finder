@@ -14,7 +14,7 @@ import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+nltk_dir = os.path.join(BASE_DIR,'nltk_data')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.2/howto/deployment/checklist/
@@ -70,7 +70,7 @@ ROOT_URLCONF = 'project_teammates.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'project_teammates/templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -109,7 +109,7 @@ if os.getenv('GAE_APPLICATION', None):
             'HOST': '/cloudsql/project-teammates-236620:us-central1:project-teammates',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
-            'NAME': 'teammates',
+            'NAME': 'find_teammates_db',
         }
     }
 else:
@@ -124,7 +124,7 @@ else:
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
             'HOST': '127.0.0.1',
             'PORT': '3306',
-            'NAME': 'teammates',
+            'NAME': 'find_teammates_db',
             'USER': 'vibhu',
             'PASSWORD': 'vibhu123',
         }
@@ -212,8 +212,8 @@ REST_AUTH_SERIALIZERS = {
 }
 
 #----------------Settings for running on my localhost------------#
-CORS_ORIGIN_ALLOW_ALL = True
-ALLOWED_HOSTS = ['*']
+# CORS_ORIGIN_ALLOW_ALL = True
+# ALLOWED_HOSTS = ['*']
 
 #----------------Settings for running on cross origin localhost------------#
 # CORS_ORIGIN_ALLOW_ALL = False
@@ -222,15 +222,16 @@ CORS_ORIGIN_WHITELIST = ('localhost:3000','https://eighth-alchemy-236004.appspot
 # CORS_ALLOW_CREDENTIALS = True
 
 #----------------Settings for running on Production Google Cloud------------#
-# CORS_ORIGIN_ALLOW_ALL = False
-# SESSION_COOKIE_SAMESITE = None
-# # SESSION_COOKIE_HTTPONLY = False
-# CORS_ALLOW_CREDENTIALS = True
-# # CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
-# SESSION_COOKIE_DOMAIN = '.appspot.com'
-# CSRF_COOKIE_DOMAIN = '.appspot.com'
-# ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
-
+CORS_ORIGIN_ALLOW_ALL = False
+SESSION_COOKIE_SAMESITE = None
+# SESSION_COOKIE_HTTPONLY = False
+CORS_ALLOW_CREDENTIALS = True
+# CORS_ORIGIN_WHITELIST = 'eighth-alchemy-236004.appspot.com',
+SESSION_COOKIE_DOMAIN = '.appspot.com'
+CSRF_COOKIE_DOMAIN = '.appspot.com'
+ALLOWED_HOSTS = ['.appspot.com', "eighth-alchemy-236004.appspot.com", "localhost",]
+#cross-origin-policy
+#path=/, expiry = set time-delta days=999
 
 
 CORS_ALLOW_HEADERS = (
@@ -249,7 +250,7 @@ CORS_ALLOW_HEADERS = (
 )
 
 
-ACCOUNT_EMAIL_VERIFICATION = "optional"
+ACCOUNT_EMAIL_VERIFICATION = "none"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_AUTHENTICATION_METHOD = "email"
 ACCOUNT_USERNAME_REQUIRED = False

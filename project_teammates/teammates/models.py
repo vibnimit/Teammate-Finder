@@ -28,8 +28,10 @@ class Student(AbstractUser):
     skills = ArrayField(models.CharField(max_length=200), blank=True, null = True)
     university = models.ForeignKey(University, null=True, blank=True, on_delete = models.CASCADE, related_name="students")
     score = models.FloatField(default=0)
-    # students_rated = models.PositiveIntegerField(default=0)
-    # students_reviewed = models.PositiveIntegerField(default=0)
+    students_rated = models.PositiveIntegerField(default=0)
+    students_reviewed = models.PositiveIntegerField(default=0)
+    avg_rating = models.FloatField(default=0.0)
+    words = models.TextField(null=True)
 
     def __str__(self):
         return self.email
@@ -48,6 +50,7 @@ class StudentCourse(RecordTimeStamp):
     student_id = models.ForeignKey("Student", null=False, blank=False, on_delete = models.CASCADE, related_name="courses_enrolled")
     course_id = models.ForeignKey(Course, null=False, blank=False, on_delete = models.CASCADE, related_name="students_enrolled")
     enrolled = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return "student = %s %s & course = %s" %(self.student_id.first_name, self.student_id.last_name, self.course_id.name)

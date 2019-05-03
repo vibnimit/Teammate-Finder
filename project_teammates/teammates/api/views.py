@@ -1,5 +1,6 @@
 from rest_framework.generics import RetrieveUpdateAPIView, ListAPIView, RetrieveAPIView
 from teammates.models import Student, Course, University, StudentCourse, Rating, Comment
+from teammates.views import get_data
 from rest_framework.response import Response
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.permissions import IsAuthenticated, AllowAny
@@ -70,7 +71,7 @@ class RetrieveStudentsAPIView(RetrieveAPIView):
         course_code = kwargs.get('course_code')
         print('request= ',kwargs.get('course_code'))
         # StudentCourse.objects.filter(code=course_code)
-        students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id='255c4f44-a155-4eb6-9b7b-c8147d081693').values('student_id'))
+        students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id='255c4f44-a155-4eb6-9b7b-c8147d081693',  is_active = True).values('student_id'))
         serializer = StudentSearchSerializer(students)
         return Response(serializer.data)
         # return students
@@ -85,11 +86,29 @@ def getStudents(request, *args ,**kwargs):
         # print('key  ',get_token(request))
         # if session == request.session.session_key:
         #     print("============  Matched ==============")
-        students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id=kwargs.get('course_id')).values('student_id')).order_by('-score')
+        filtered_result = []
+        students = Student.objects.filter(id__in=StudentCourse.objects.filter(course_id=kwargs.get('course_id'), is_active=True).values('student_id')).order_by('-score')
         result = serializers.serialize("json", students)
-        print('result============> ', result)
+        # print('result============> ', result)
+        results = json.loads(result)
+        for result in results:
+            filtered_result.append(
+                {
+                    "student_id": result['pk'],
+                    "username": result['fields']['username'],
+                    "first_name": result['fields']['first_name'],
+                    "last_name": result['fields']['last_name'],
+                    "email": result['fields']['email'],
+                    "skills": result['fields']['skills'],
+                    "university": result['fields']['university'],
+                    "score": result['fields']['score'],
+                    "students_rated": result['fields']['students_rated'],
+                    "students_reviewed": result['fields']['students_reviewed'],
+                    "avg_rating": result['fields']['avg_rating'],
+                    "words": json.loads(result['fields']['words'])[:5] if result['fields']['words'] else []
+                })
 
-        return HttpResponse(json.dumps(result), content_type='application/json')
+        return HttpResponse(json.dumps(filtered_result), content_type='application/json')
 
 @api_view(['POST'])
 @authentication_classes((TokenAuthentication,))
@@ -131,12 +150,16 @@ def updateStudentRank(request):
         }
     # print("===========>> ",stud_data)
     score_dict = function_by_Jagriti(stud_data)
-    print("==============================&===================  \n", score_dict)
+    # print("==============================&===================  \n", score_dict)
     for student in students:
         calculated_values = score_dict.get(str(student.id))
         # print("values = ", calculated_values)
         if calculated_values:
             student.score = calculated_values[0]
+            student.students_rated = calculated_values[1]
+            student.students_reviewed = calculated_values[2]
+            student.avg_rating = calculated_values[3]
+            student.words = json.dumps(calculated_values[4]) if len(calculated_values[4]) !=0 else []
             student.save()
     return HttpResponse("<h1>Success</h1>")
 #-----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -152,7 +175,7 @@ def entity_sentiment_text(annotations,text):
         encoding = enums.EncodingType.UTF16
     result = client.analyze_entity_sentiment(document)
     for entity in result.entities:
-        print(u'Name: "{}"'.format(entity.name))
+        # print(u'Name: "{}"'.format(entity.name))
         for mention in entity.mentions:
             print(u'Magnitude : {}'.format(mention.sentiment.magnitude))
         if entity.sentiment.score>0:
@@ -172,7 +195,7 @@ def print_result(annotations,content):
         sent = 'Negative'
     else:
         sent = "Neutral"
-    print("Overall Sentiment: {}, Magnitude {}, Score {}\n".format(sent, magnitude, score))
+    # print("Overall Sentiment: {}, Magnitude {}, Score {}\n".format(sent, magnitude, score))
     #entity_sentiment_text(annotations,content)
     return score
 
@@ -190,31 +213,40 @@ def analyze(content):
 
 def function_by_Jagriti(dic):
     scores = {}
-    avg_review_score = []
-    review_score = 0.0
-    rating_score = 0.0
+
     path = BASE_DIR+"/teammates/api/CSE578-43fcff5cabbc.json"
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = path     #####Check this before running the code
     for student in dic.keys():
+        review_score = 0.0
+        rating_score = 0.0
         temp = []
+        word_sentiment = []
         #scores[student] = 4.0
         each_stud = dic[student]
         list_comment = each_stud['comments']
         student_rating = each_stud['ratings']
         if list_comment:
+            avg_review_score = []
+            word_sentiment = performSentimentAnalysis(list_comment)
             for comment in list_comment:
                 overall_sent_score = analyze(comment)
                 avg_review_score.append(overall_sent_score)
+                print("ooo", overall_sent_score)
             review_score = statistics.mean(avg_review_score)    ####Final review score
+            # print('rrrrrrrrrrr',review_score)
         if student_rating:
-            normalized_rating_score = [x / 5 for x in student_rating]
+            normalized_rating_score = [x for x in student_rating] ##removed /5 to have it in scale 0 to 5
             rating_score = statistics.mean(normalized_rating_score)  ####Final rating score
-        scor = review_score + rating_score
-        temp.append(scor)
-        temp.append(len(each_stud['comments']))
-        temp.append(len(each_stud['ratings']))
+        # print("arrarara", rating_score)
+        scor = review_score*5 + rating_score  ##for a scale of 0 to 10
+        temp.append(round(scor,2))
+        temp.append(len(list_comment))
+        temp.append(len(student_rating))
+        temp.append(rating_score)
+        temp.append(word_sentiment)
         scores[student] = temp
-    print('scores=  ', scores)
+        # print('score=  ', scor)
+    # print('temp=  ', temp)
     return scores                                                   ### scores = {stud_id: [overall_rating, no of people commented, no of people rated],stud_id:[overall_rating, no of people commented, no of people rated]}
 	
 #----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -240,6 +272,7 @@ class CustomLogin(LoginView):
         serialize_data = serializer.data
         serialize_data['session'] = self.request.session.session_key
         serialize_data['csrf'] = get_token(self.request)
+        serialize_data['name'] = self.user.first_name+" "+self.user.last_name
         # serialize_data['session'] = self.request
         # print('data:::  ',serialize_data)
         response = Response(serialize_data, status=status.HTTP_200_OK)
@@ -286,17 +319,15 @@ class CustomRegisterView(RegisterView):
 @api_view(['GET','POST'])
 @authentication_classes((TokenAuthentication,))
 @permission_classes((IsAuthenticated,))
-def get_or_setCourses(request):
+def get_or_setCourses(request, student_id=None):
     if request.method == 'POST':
-        print(request.POST.__dict__)
+        # print(request.POST.__dict__)
         print("===========",request.data)
         if request.POST.get("student_id", None) == None:
             json_obj = request.data
             # json_obj = json.loads(decoded)
             student_id = json_obj.get('student_id')
-
             student_id = uuid.UUID(str(student_id)).hex
-
             courses = json_obj.get("courses")
 
         else:
@@ -307,13 +338,18 @@ def get_or_setCourses(request):
 
         enrolled = courses.get("current")
         past = courses.get("past")
+
+        student_obj = Student.objects.get(id = student_id)
+        course_enrolled_in_db = student_obj.courses_enrolled.all()
+        course_enrolled_in_db.update(is_active=False)
+
         try:
             for course in enrolled:
-                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course, enrolled = True)
+                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course, defaults={"enrolled": True, "is_active": True})
 
             for course in past:
-                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course,
-                                                                                 enrolled=False)
+                course_obj, created = StudentCourse.objects.update_or_create(student_id_id = student_id, course_id_id = course, defaults={"enrolled": False, "is_active": True})
+
         except Exception as e:
             print("Exception occurred in get_or_setCourses", e)
             return HttpResponse("Courses Update failed", status = 204, content_type='application/text')
@@ -321,13 +357,25 @@ def get_or_setCourses(request):
         return HttpResponse("Courses Updated", status = 200, content_type='application/text')
 
     elif request.method == 'GET':
-        student_id = request.GET.get('student_id', None)
+        # student_id = request.GET.get('student_id', None)
         if student_id == None:
+            filtered_data = []
             all_courses = Course.objects.all()
-            result = getJSONSerializedData(all_courses) #Note this will data after json.dumps()
-            return HttpResponse(result, content_type='application/json')
+            results = getJSONSerializedData(all_courses) #Note this will data after json.dumps()
+            # print(type(json.loads(results)))
+
+            results = json.loads(results)
+            for result in results:
+                filtered_data.append(
+                    {
+                        "course_id":result['pk'],
+                        "code":result['fields']['code'],
+                        "name":result['fields']['name']
+                    })
+
+            return HttpResponse(json.dumps(filtered_data), content_type='application/json')
         student = Student.objects.get(id = student_id)
-        courses = student.courses_enrolled.all()
+        courses = student.courses_enrolled.filter(is_active=True)
         result = {
             "current":[],
             "past":[]
@@ -336,12 +384,14 @@ def get_or_setCourses(request):
             if course.enrolled:
                 result["current"].append({
                     "name": course.course_id.name,
-                    "course_id": str(course.course_id_id)
+                    "course_id": str(course.course_id_id),
+                    "code": course.course_id.code
                 })
             elif course.enrolled == False:
                 result["past"].append({
                     "name": course.course_id.name,
-                    "course_id": str(course.course_id_id)
+                    "course_id": str(course.course_id_id),
+                    "code": course.course_id.code
                 })
 
         return HttpResponse(json.dumps(result), content_type='application/json')
@@ -349,8 +399,58 @@ def get_or_setCourses(request):
 
 def getJSONSerializedData(data):
     result = serializers.serialize("json", data)
-    return json.dumps(result)
+    return result
 
+
+@api_view(['GET'])
+@authentication_classes((TokenAuthentication,))
+@permission_classes((IsAuthenticated,))
+def getStudentInfo(request, student_id=None):
+    if request.method == 'GET':
+        filtered_result = []
+        if student_id != None:
+            student_obj = Student.objects.filter(id = student_id)
+            result = serializers.serialize("json", student_obj)
+            # print('result============> ', result)
+            results = json.loads(result)
+            for result in results:
+                filtered_result.append(
+                    {
+                        "student_id": result['pk'],
+                        "username": result['fields']['username'],
+                        "first_name": result['fields']['first_name'],
+                        "last_name": result['fields']['last_name'],
+                        "email": result['fields']['email'],
+                        "skills": json.dumps(result['fields']['skills']),
+                        "university": result['fields']['university'],
+                        "score": result['fields']['score'],
+                        "students_rated": result['fields']['students_rated'],
+                        "students_reviewed": result['fields']['students_reviewed'],
+                        "avg_rating": result['fields']['avg_rating'],
+                        "words": json.loads(result['fields']['words'])[:5]
+                    })
+
+        return HttpResponse(json.dumps(filtered_result), content_type='application/json')
+
+
+def performSentimentAnalysis(comments_list):
+    sorted_words = get_data(comments_list)
+    # sorted_words = sorted(important_words, key=lambda k: k['count'])
+    result = []
+
+
+
+    for word in sorted_words.keys():
+        result.append(
+            {
+                "word": word,
+                "count": int(sorted_words[word])
+                # "sentiment": "positive" if word['positive'] > word['negative'] else "negative"
+            }
+        )
+
+    # print(type(result))
+    return result
 # def getStudentsOfACourse(request):
 #
 
